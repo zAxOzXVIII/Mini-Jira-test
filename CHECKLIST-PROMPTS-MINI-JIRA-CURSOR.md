@@ -6,9 +6,9 @@
 
 ## Checklist rápido (antes de empezar)
 
-*Última comprobación en esta máquina: 2026-05-04.*
+*Última actualización: 2026-05-06.*
 
-- [x] Carpeta de proyecto vacía o repositorio nuevo listo — *Carpeta lista para Fase 1; hoy solo contiene este checklist (sin `package.json` todavía).*
+- [x] Carpeta de proyecto vacía o repositorio nuevo listo — *Raíz con checklist + app en **`web/`** (`package.json` en `web`).*
 - [x] Node.js LTS instalado — *Detectado: **Node v22.22.0**, **npm 11.6.2** (válido para Next.js actual).*
 - [ ] PostgreSQL accesible (local o remoto) y URL de conexión preparada — *No se encontró `psql` en el PATH; confirma tu instancia (local, Docker, Neon, etc.) y define `DATABASE_URL` antes de migrar.*
 - [ ] Composer abierto y, en pasos 2+, archivos clave referenciados con `@` (ver sección Tips) — *Hábito de trabajo; márcalo cuando empieces Fase 2+.*
@@ -17,21 +17,19 @@
 
 ## Fase 0 — Dependencias y entorno (opcional pero recomendable)
 
-**Estado:** ejecutada sobre este repo — aún **no** hay `package.json`; los comandos de abajo cubren **scaffold + paquetes** para cuando pases a Fase 1 (o pégalos en Composer tras crear el proyecto).
+**Estado:** **completada** en `web/` — Next.js 16 (App Router, TS, Tailwind 4), Prisma 7 inicializado, shadcn (estilo base-nova), paquetes Kanban/formulario instalados, `npm run build` OK. Los comandos siguientes sirven de referencia o para repetir en otra máquina.
 
 ### A) Crear el proyecto Next.js (App Router + TS + Tailwind)
 
-En esta carpeta ya existe `CHECKLIST-PROMPTS-MINI-JIRA-CURSOR.md`, así que `create-next-app` en `.` puede pedir carpeta no vacía. Opciones:
-
-1. **Subcarpeta** (recomendado): crea el app dentro de `web` (o el nombre que prefieras) y trabaja ahí con `cd web` en los siguientes comandos.
+En la raíz del repo conviene la subcarpeta **`web`** si no quieres mezclar con otros archivos (p. ej. este checklist).
 
 ```powershell
 cd "d:\Documentos\Programacion_doc\NodeJS\Flujo_Trabajo_Jira"
-npx create-next-app@latest web --typescript --tailwind --eslint --app --src-dir --import-alias "@/*" --use-npm
+npx create-next-app@latest web --typescript --tailwind --eslint --app --src-dir --import-alias "@/*" --use-npm --turbopack --yes
 cd web
 ```
 
-2. **Forzar en la raíz** (solo si quieres mezclar con el `.md` en el mismo nivel): añade `--yes` si tu versión de `create-next-app` lo soporta para no interactivo, o responde el wizard manualmente.
+*(Alternativa: scaffold en la raíz con `--yes` si tu plantilla lo permite y aceptas archivos junto al checklist.)*
 
 ### B) Prisma (después de `cd web` o raíz del app)
 
@@ -56,11 +54,14 @@ npx prisma migrate dev --name init
 npx shadcn@latest init
 ```
 
-Componentes que usarás en fases posteriores (ejemplo):
+Componentes añadidos para fases posteriores:
 
 ```powershell
-npx shadcn@latest add card badge button dialog input label select form
+npx shadcn@latest add card badge button dialog input label select form --yes
+npx shadcn@latest add field --yes
 ```
+
+*Nota:* con el estilo **base-nova**, el CLI puede no crear `form.tsx`; **`field`** (+ `label`, `input`) cubre formularios accesibles con **react-hook-form** y **Zod**.
 
 ### D) Kanban, formularios y validación
 
@@ -72,9 +73,10 @@ npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities zod react-hook-fo
 
 | Paso | Comando / nota |
 |------|------------------|
-| Cliente Prisma tras cambiar schema | `npx prisma generate` |
-| BD alineada con schema | `npx prisma migrate dev` o `db push` |
-| Arranque dev | `npm run dev` |
+| Cliente Prisma tras cambiar schema | `npm run db:generate` o `npx prisma generate` |
+| BD alineada con schema | `npx prisma migrate dev` o `db push` (requiere `DATABASE_URL` válida) |
+| Arranque dev | `cd web` → `npm run dev` |
+| Plantilla de conexión | Copia `web/.env.example` → `web/.env` y ajusta `DATABASE_URL` |
 
 **Prompt sugerido (cuando ya exista `package.json`):**
 
@@ -84,8 +86,14 @@ npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities zod react-hook-fo
 
 - [x] Comandos documentados (scaffold + Prisma + shadcn + dnd-kit + form/zod)
 - [x] Node/npm verificados en terminal
-- [ ] `create-next-app` ejecutado y carpeta `web` (o equivalente) creada — *pendiente tuyo*
-- [ ] `DATABASE_URL` y PostgreSQL listos — *pendiente tuyo*
+- [x] `create-next-app` ejecutado y carpeta **`web/`** creada con dependencias instaladas
+- [x] Prisma inicializado (`prisma/`, `prisma.config.ts`, `npx prisma generate` ejecutado)
+- [x] shadcn inicializado + UI: button, card, badge, dialog, input, label, select, field, separator
+- [x] `@dnd-kit/*`, `zod`, `react-hook-form`, `@hookform/resolvers` instalados
+- [x] `web/.env.example` con plantilla de `DATABASE_URL`
+- [ ] **`DATABASE_URL` real y PostgreSQL accesible** — *sigue pendiente hasta que configures tu instancia (Fase 1 / migraciones)*
+
+**Trabajar siempre desde la app:** `cd web` antes de `npm run dev`, Prisma o shadcn.
 
 ---
 
