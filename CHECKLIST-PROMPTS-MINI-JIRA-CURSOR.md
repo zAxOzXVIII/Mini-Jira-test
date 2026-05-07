@@ -101,18 +101,20 @@ npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities zod react-hook-fo
 
 **Meta:** Cimientos del repo: stack, Prisma, esquema y carpetas base.
 
+**Estado (2026-05-07):** modelo y cliente listos en `web/`; migración SQL versionada. Con PostgreSQL accesible: `cd web` → `npx prisma migrate deploy` (o `migrate dev` en desarrollo).
+
 **Checklist de verificación**
 
-- [ ] Next.js (App Router) + TypeScript
-- [ ] Tailwind CSS configurado
-- [ ] shadcn/ui inicializado (o plan claro para añadirlo)
-- [ ] Prisma + PostgreSQL con `schema.prisma` coherente
-- [ ] Entidades mínimas:
-  - [ ] **User:** `id`, `email`, `name`, `avatar`
-  - [ ] **Project:** `id`, `name`, `description`
-  - [ ] **Task:** `id`, `title`, `description`, `status` (enum: `TODO`, `IN_PROGRESS`, `DONE`), `priority` (enum: `LOW`, `MEDIUM`, `HIGH`), relación a **User** (asignado), relación a **Project**, `createdAt`
-- [ ] Estructura: `src/app`, `src/components`, `src/lib`
-- [ ] Migración inicial aplicada o instrucciones claras para `migrate dev`
+- [x] Next.js (App Router) + TypeScript
+- [x] Tailwind CSS configurado
+- [x] shadcn/ui inicializado (o plan claro para añadirlo)
+- [x] Prisma + PostgreSQL con `schema.prisma` coherente
+- [x] Entidades mínimas:
+  - [x] **User:** `id`, `email`, `name`, `avatar`
+  - [x] **Project:** `id`, `name`, `description`
+  - [x] **Task:** `id`, `title`, `description`, `status` (enum: `TODO`, `IN_PROGRESS`, `DONE`), `priority` (enum: `LOW`, `MEDIUM`, `HIGH`), relación a **User** (asignado), relación a **Project**, `createdAt`
+- [x] Estructura: `src/app`, `src/components`, `src/lib`
+- [x] Migración inicial en repo (`prisma/migrations/…`) — *aplicar en tu BD con `DATABASE_URL` válida:* `npx prisma migrate deploy` o `npx prisma migrate dev`
 
 **Prompt mejorado (copiar en Composer):**
 
