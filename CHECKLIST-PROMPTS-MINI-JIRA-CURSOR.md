@@ -101,7 +101,9 @@ npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities zod react-hook-fo
 
 **Meta:** Cimientos del repo: stack, Prisma, esquema y carpetas base.
 
-**Estado (2026-05-07):** modelo y cliente listos en `web/`; migración SQL versionada. Con PostgreSQL accesible: `cd web` → `npx prisma migrate deploy` (o `migrate dev` en desarrollo).
+**Estado:** modelo y cliente listos en `web/`; migración SQL versionada. Con PostgreSQL accesible: `cd web` → `npx prisma migrate deploy` (o `migrate dev` en desarrollo).
+
+**Re-verificación (2026-05-06):** en `web/` se ejecutó `npx prisma validate` (OK), `npx prisma generate` (OK) y `npm run build` (OK). El esquema cumple User / Project / Task, enums, FKs e índices; `src/lib/prisma.ts` usa adaptador `@prisma/adapter-pg` + singleton para Next.js.
 
 **Checklist de verificación**
 
