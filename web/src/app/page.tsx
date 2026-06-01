@@ -23,8 +23,9 @@ export default async function Home() {
             Tablero del proyecto
           </h1>
           <p className="max-w-2xl text-sm text-muted-foreground">
-            Arrastra las tarjetas entre columnas. Los cambios se guardan al
-            soltar cuando la base de datos está disponible.
+            Busca y filtra tareas, crea nuevas desde el botón superior y arrastra
+            tarjetas entre columnas. Los cambios se guardan cuando la base de
+            datos está disponible.
           </p>
           {dbNotice ? (
             <p className="max-w-2xl text-sm text-amber-700 dark:text-amber-300">

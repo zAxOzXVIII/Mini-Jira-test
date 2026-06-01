@@ -19,10 +19,16 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 
-import { updateTaskStatus } from "@/app/actions/tasks";
-import type { TaskStatus } from "@/generated/prisma/enums";
+import { createTask, updateTaskStatus } from "@/app/actions/tasks";
+import { TaskStatus, type TaskStatus as TaskStatusType } from "@/generated/prisma/enums";
+import type { CreateTaskFormValues } from "@/lib/validations/task";
 
 import { KANBAN_COLUMNS, TASK_STATUS_SET } from "./constants";
+import {
+  KanbanFilterEmptyState,
+  KanbanToolbar,
+  type PriorityFilter,
+} from "./kanban-toolbar";
 import { KanbanColumnBoard } from "./kanban-column";
 import { KanbanTaskCardOverlay } from "./kanban-task-card";
 import type { KanbanTask } from "./types";
@@ -33,34 +39,48 @@ type KanbanBoardProps = {
   dataSource: "database" | "mock";
 };
 
-type OptimisticAction = {
-  type: "update-status";
-  taskId: string;
-  status: TaskStatus;
-};
+type OptimisticAction =
+  | { type: "update-status"; taskId: string; status: TaskStatusType }
+  | { type: "add"; task: KanbanTask };
 
-function tasksReducer(
-  state: KanbanTask[],
-  action: OptimisticAction
-): KanbanTask[] {
-  if (action.type === "update-status") {
-    return state.map((t) =>
-      t.id === action.taskId ? { ...t, status: action.status } : t
-    );
+function tasksReducer(state: KanbanTask[], action: OptimisticAction): KanbanTask[] {
+  switch (action.type) {
+    case "update-status":
+      return state.map((t) =>
+        t.id === action.taskId ? { ...t, status: action.status } : t
+      );
+    case "add":
+      return [...state, action.task];
+    default:
+      return state;
   }
-  return state;
 }
 
 function resolveTargetStatus(
   overId: string | number,
   tasks: KanbanTask[]
-): TaskStatus | null {
+): TaskStatusType | null {
   const id = String(overId);
   if (TASK_STATUS_SET.has(id)) {
-    return id as TaskStatus;
+    return id as TaskStatusType;
   }
   const overTask = tasks.find((t) => t.id === id);
   return overTask?.status ?? null;
+}
+
+function filterTasks(
+  tasks: KanbanTask[],
+  search: string,
+  priorityFilter: PriorityFilter
+): KanbanTask[] {
+  const query = search.trim().toLowerCase();
+  return tasks.filter((task) => {
+    const matchesSearch =
+      query === "" || task.title.toLowerCase().includes(query);
+    const matchesPriority =
+      priorityFilter === "ALL" || task.priority === priorityFilter;
+    return matchesSearch && matchesPriority;
+  });
 }
 
 export function KanbanBoard({
@@ -76,6 +96,9 @@ export function KanbanBoard({
   );
   const [activeTask, setActiveTask] = useState<KanbanTask | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>("ALL");
+  const [isCreating, setIsCreating] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -83,17 +106,29 @@ export function KanbanBoard({
     })
   );
 
+  const filteredTasks = useMemo(
+    () => filterTasks(optimisticTasks, search, priorityFilter),
+    [optimisticTasks, search, priorityFilter]
+  );
+
   const tasksByColumn = useMemo(() => {
     const grouped = Object.fromEntries(
       KANBAN_COLUMNS.map((col) => [col.id, [] as KanbanTask[]])
-    ) as Record<TaskStatus, KanbanTask[]>;
+    ) as Record<TaskStatusType, KanbanTask[]>;
 
-    for (const task of optimisticTasks) {
+    for (const task of filteredTasks) {
       grouped[task.status].push(task);
     }
 
     return grouped;
-  }, [optimisticTasks]);
+  }, [filteredTasks]);
+
+  const hasActiveFilters =
+    search.trim() !== "" || priorityFilter !== "ALL";
+  const showFilterEmpty =
+    hasActiveFilters &&
+    filteredTasks.length === 0 &&
+    optimisticTasks.length > 0;
 
   const handleDragStart = useCallback(
     (event: DragStartEvent) => {
@@ -151,8 +186,72 @@ export function KanbanBoard({
     setActiveTask(null);
   }, []);
 
+  const handleCreateTask = useCallback(
+    async (values: CreateTaskFormValues): Promise<boolean> => {
+      const payload = {
+        title: values.title,
+        description: values.description?.trim() || undefined,
+        priority: values.priority,
+        projectId,
+        status: TaskStatus.TODO,
+      };
+
+      const optimisticTask: KanbanTask = {
+        id: `temp-${crypto.randomUUID()}`,
+        title: payload.title,
+        description: payload.description ?? null,
+        status: TaskStatus.TODO,
+        priority: payload.priority,
+        createdAt: new Date().toISOString(),
+        projectId,
+        assignedTo: null,
+      };
+
+      if (dataSource === "mock") {
+        startTransition(() => {
+          dispatchOptimistic({
+            type: "add",
+            task: { ...optimisticTask, id: `mock-${crypto.randomUUID()}` },
+          });
+        });
+        return true;
+      }
+
+      setIsCreating(true);
+      return new Promise((resolve) => {
+        startTransition(async () => {
+          setError(null);
+          dispatchOptimistic({ type: "add", task: optimisticTask });
+
+          const result = await createTask(payload);
+          setIsCreating(false);
+
+          if (!result.success) {
+            setError(result.error);
+            router.refresh();
+            resolve(false);
+            return;
+          }
+
+          router.refresh();
+          resolve(true);
+        });
+      });
+    },
+    [projectId, dataSource, dispatchOptimistic, router]
+  );
+
   return (
     <div className="space-y-4">
+      <KanbanToolbar
+        search={search}
+        onSearchChange={setSearch}
+        priorityFilter={priorityFilter}
+        onPriorityFilterChange={setPriorityFilter}
+        onCreateTask={handleCreateTask}
+        isCreating={isCreating}
+      />
+
       {error ? (
         <div
           role="alert"
@@ -176,8 +275,13 @@ export function KanbanBoard({
           {dataSource === "database" ? "Base de datos" : "Datos locales (mock)"}
         </span>
         {isPending ? <span>Guardando cambios…</span> : null}
+        <span>
+          {filteredTasks.length} de {optimisticTasks.length} tareas visibles
+        </span>
         <span className="sr-only">Proyecto {projectId}</span>
       </div>
+
+      {showFilterEmpty ? <KanbanFilterEmptyState /> : null}
 
       <DndContext
         sensors={sensors}

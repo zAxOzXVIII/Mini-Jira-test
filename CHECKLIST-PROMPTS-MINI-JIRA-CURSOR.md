@@ -188,12 +188,14 @@ npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities zod react-hook-fo
 
 **Meta:** Pulido “pro”: filtros locales o server-side según volumen (deja claro en el prompt si quieres filtrar en cliente con las tareas ya cargadas).
 
+**Estado:** completada — filtros en cliente sobre la lista cargada; modal con `createTaskFormSchema` alineado al servidor.
+
 **Checklist de verificación**
 
-- [ ] Barra sobre el Kanban: búsqueda por título en tiempo real
-- [ ] Filtro por prioridad (select / dropdown)
-- [ ] Botón “Nueva tarea” → **Dialog** shadcn
-- [ ] Formulario con **react-hook-form** + **Zod** (schema compartido o duplicado controlado con el servidor)
+- [x] Barra sobre el Kanban: búsqueda por título en tiempo real
+- [x] Filtro por prioridad (select / dropdown)
+- [x] Botón “Nueva tarea” → **Dialog** shadcn
+- [x] Formulario con **react-hook-form** + **Zod** (schema compartido o duplicado controlado con el servidor)
 
 **Prompt mejorado:**
 

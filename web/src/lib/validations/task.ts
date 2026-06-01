@@ -37,5 +37,17 @@ export const createTaskSchema = z.object({
   status: taskStatusSchema.default(TaskStatus.TODO),
 });
 
+/** Formulario del modal (mismas reglas que `createTask` en el servidor). */
+export const createTaskFormSchema = z.object({
+  title: z.string().trim().min(1, "El título es obligatorio").max(200),
+  description: z
+    .string()
+    .trim()
+    .max(2000, "Máximo 2000 caracteres")
+    .optional(),
+  priority: taskPrioritySchema,
+});
+
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
+export type CreateTaskFormValues = z.infer<typeof createTaskFormSchema>;
 export type UpdateTaskStatusInput = z.infer<typeof updateTaskStatusSchema>;
