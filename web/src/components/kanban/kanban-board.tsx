@@ -21,12 +21,19 @@ import {
 import { toast } from "sonner";
 
 import { createTask, updateTaskStatus } from "@/app/actions/tasks";
-import { TaskStatus, type TaskStatus as TaskStatusType } from "@/generated/prisma/enums";
+import { TaskStatus } from "@/generated/prisma/enums";
 import type { CreateTaskFormValues } from "@/lib/validations/task";
-
+import {
+  COLUMN_LABELS,
+  filterTasks,
+  groupTasksByColumn,
+  hasActiveKanbanFilters,
+  resolveTargetStatus,
+  tasksReducer,
+} from "@/lib/kanban/kanban-utils";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
-import { KANBAN_COLUMNS, TASK_STATUS_SET } from "./constants";
+import { KANBAN_COLUMNS } from "./constants";
 import {
   KanbanFilterEmptyState,
   KanbanToolbar,
@@ -41,56 +48,6 @@ type KanbanBoardProps = {
   projectId: string;
   dataSource: "database" | "mock";
 };
-
-type OptimisticAction =
-  | { type: "update-status"; taskId: string; status: TaskStatusType }
-  | { type: "add"; task: KanbanTask };
-
-function tasksReducer(state: KanbanTask[], action: OptimisticAction): KanbanTask[] {
-  switch (action.type) {
-    case "update-status":
-      return state.map((t) =>
-        t.id === action.taskId ? { ...t, status: action.status } : t
-      );
-    case "add":
-      return [...state, action.task];
-    default:
-      return state;
-  }
-}
-
-function resolveTargetStatus(
-  overId: string | number,
-  tasks: KanbanTask[]
-): TaskStatusType | null {
-  const id = String(overId);
-  if (TASK_STATUS_SET.has(id)) {
-    return id as TaskStatusType;
-  }
-  const overTask = tasks.find((t) => t.id === id);
-  return overTask?.status ?? null;
-}
-
-const COLUMN_LABELS: Record<TaskStatusType, string> = {
-  [TaskStatus.TODO]: "Por hacer",
-  [TaskStatus.IN_PROGRESS]: "En progreso",
-  [TaskStatus.DONE]: "Hecho",
-};
-
-function filterTasks(
-  tasks: KanbanTask[],
-  search: string,
-  priorityFilter: PriorityFilter
-): KanbanTask[] {
-  const query = search.trim().toLowerCase();
-  return tasks.filter((task) => {
-    const matchesSearch =
-      query === "" || task.title.toLowerCase().includes(query);
-    const matchesPriority =
-      priorityFilter === "ALL" || task.priority === priorityFilter;
-    return matchesSearch && matchesPriority;
-  });
-}
 
 export function KanbanBoard({
   initialTasks,
@@ -120,19 +77,12 @@ export function KanbanBoard({
     [optimisticTasks, search, priorityFilter]
   );
 
-  const tasksByColumn = useMemo(() => {
-    const grouped = Object.fromEntries(
-      KANBAN_COLUMNS.map((col) => [col.id, [] as KanbanTask[]])
-    ) as Record<TaskStatusType, KanbanTask[]>;
+  const tasksByColumn = useMemo(
+    () => groupTasksByColumn(filteredTasks),
+    [filteredTasks]
+  );
 
-    for (const task of filteredTasks) {
-      grouped[task.status].push(task);
-    }
-
-    return grouped;
-  }, [filteredTasks]);
-
-  const hasActiveFilters = search.trim() !== "" || priorityFilter !== "ALL";
+  const hasActiveFilters = hasActiveKanbanFilters(search, priorityFilter);
   const showFilterEmpty =
     hasActiveFilters && filteredTasks.length === 0 && optimisticTasks.length > 0;
 

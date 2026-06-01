@@ -223,6 +223,15 @@ npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities zod react-hook-fo
 
 ---
 
+## Documentación y calidad (2026-06-01)
+
+- [x] `README.md` (raíz) + `web/README.md`
+- [x] `docs/ARCHITECTURE.md`, `docs/TESTING.md`, `docs/ROADMAP.md`
+- [x] Lógica Kanban extraída a `src/lib/kanban/kanban-utils.ts`
+- [x] Tests Vitest: `npm run test:run` (27 tests)
+
+---
+
 ## Mejoras UX implementadas (2026-06-01)
 
 - **Toasts (sonner):** éxito/error al mover tarjeta y al crear tarea; integrado en layout con `richColors`.
