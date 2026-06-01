@@ -12,7 +12,7 @@ export type KanbanTask = {
   description?: string | null;
   status: TaskStatus;
   priority: TaskPriority;
-  createdAt: Date;
+  createdAt: string;
   assignedTo?: KanbanAssignee | null;
   projectId: string;
 };

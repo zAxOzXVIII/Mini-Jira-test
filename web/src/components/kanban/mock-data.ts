@@ -1,8 +1,10 @@
 import { TaskPriority, TaskStatus } from "@/generated/prisma/enums";
 
+import { DEMO_PROJECT_ID } from "@/lib/constants/project";
+
 import type { KanbanTask } from "./types";
 
-const PROJECT_ID = "proj_demo";
+export { DEMO_PROJECT_ID };
 
 export const MOCK_KANBAN_TASKS: KanbanTask[] = [
   {
@@ -11,8 +13,8 @@ export const MOCK_KANBAN_TASKS: KanbanTask[] = [
     description: "Documentar historias de usuario y criterios de aceptación.",
     status: TaskStatus.TODO,
     priority: TaskPriority.HIGH,
-    createdAt: new Date("2026-05-01T10:00:00Z"),
-    projectId: PROJECT_ID,
+    createdAt: "2026-05-01T10:00:00.000Z",
+    projectId: DEMO_PROJECT_ID,
     assignedTo: { id: "user_1", name: "Ana García" },
   },
   {
@@ -20,8 +22,8 @@ export const MOCK_KANBAN_TASKS: KanbanTask[] = [
     title: "Diseñar esquema de base de datos",
     status: TaskStatus.TODO,
     priority: TaskPriority.MEDIUM,
-    createdAt: new Date("2026-05-02T14:30:00Z"),
-    projectId: PROJECT_ID,
+    createdAt: "2026-05-02T14:30:00.000Z",
+    projectId: DEMO_PROJECT_ID,
     assignedTo: { id: "user_2", name: "Luis Martínez" },
   },
   {
@@ -30,8 +32,8 @@ export const MOCK_KANBAN_TASKS: KanbanTask[] = [
     description: "UI con dnd-kit y tarjetas shadcn.",
     status: TaskStatus.IN_PROGRESS,
     priority: TaskPriority.HIGH,
-    createdAt: new Date("2026-05-03T09:15:00Z"),
-    projectId: PROJECT_ID,
+    createdAt: "2026-05-03T09:15:00.000Z",
+    projectId: DEMO_PROJECT_ID,
     assignedTo: { id: "user_1", name: "Ana García" },
   },
   {
@@ -39,16 +41,16 @@ export const MOCK_KANBAN_TASKS: KanbanTask[] = [
     title: "Configurar CI/CD",
     status: TaskStatus.IN_PROGRESS,
     priority: TaskPriority.LOW,
-    createdAt: new Date("2026-05-04T11:00:00Z"),
-    projectId: PROJECT_ID,
+    createdAt: "2026-05-04T11:00:00.000Z",
+    projectId: DEMO_PROJECT_ID,
   },
   {
     id: "task_5",
     title: "Revisión de accesibilidad",
     status: TaskStatus.DONE,
     priority: TaskPriority.MEDIUM,
-    createdAt: new Date("2026-04-28T16:45:00Z"),
-    projectId: PROJECT_ID,
+    createdAt: "2026-04-28T16:45:00.000Z",
+    projectId: DEMO_PROJECT_ID,
     assignedTo: { id: "user_3", name: "Sofía Ruiz" },
   },
   {
@@ -56,8 +58,8 @@ export const MOCK_KANBAN_TASKS: KanbanTask[] = [
     title: "Publicar documentación inicial",
     status: TaskStatus.DONE,
     priority: TaskPriority.LOW,
-    createdAt: new Date("2026-04-30T08:20:00Z"),
-    projectId: PROJECT_ID,
+    createdAt: "2026-04-30T08:20:00.000Z",
+    projectId: DEMO_PROJECT_ID,
     assignedTo: { id: "user_2", name: "Luis Martínez" },
   },
 ];

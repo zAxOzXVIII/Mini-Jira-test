@@ -11,15 +11,24 @@ const globalForPrisma = globalThis as unknown as {
 function createPrismaClient(): PrismaClient {
   const url = process.env.DATABASE_URL;
   if (!url) {
-    throw new Error("DATABASE_URL no está definida. Copia web/.env.example a web/.env y configura PostgreSQL.");
+    throw new Error(
+      "DATABASE_URL no está definida. Copia web/.env.example a web/.env y configura PostgreSQL."
+    );
   }
   const pool = new Pool({ connectionString: url });
   const adapter = new PrismaPg(pool);
   return new PrismaClient({ adapter });
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+/** Cliente Prisma; `null` si no hay `DATABASE_URL`. */
+export function getPrisma(): PrismaClient | null {
+  if (!process.env.DATABASE_URL) {
+    return null;
+  }
 
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = createPrismaClient();
+  }
+
+  return globalForPrisma.prisma;
 }

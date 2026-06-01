@@ -77,6 +77,7 @@ npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities zod react-hook-fo
 | BD alineada con schema | `npx prisma migrate dev` o `db push` (requiere `DATABASE_URL` válida) |
 | Arranque dev | `cd web` → `npm run dev` |
 | Plantilla de conexión | Copia `web/.env.example` → `web/.env` y ajusta `DATABASE_URL` |
+| Migrar + seed demo | `npm run db:migrate` → `npm run db:seed` (o seed automático al cargar `/`) |
 
 **Prompt sugerido (cuando ya exista `package.json`):**
 
@@ -159,13 +160,15 @@ npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities zod react-hook-fo
 
 **Meta:** CRUD mínimo para el tablero + sensación de inmediatez con optimistic UI.
 
+**Estado:** completada — acciones en `web/src/app/actions/tasks.ts`, validación Zod, seed demo automático, tablero con `useOptimistic` y fallback a mock si no hay BD.
+
 **Checklist de verificación**
 
-- [ ] `getTasks(projectId)` — listar tareas del proyecto
-- [ ] `updateTaskStatus(taskId, newStatus)` — al soltar en otra columna
-- [ ] `createTask(data)` — alta de tareas
-- [ ] Validación de entrada en servidor (Zod o equivalente donde encaje)
-- [ ] **useOptimistic** para mover tarjetas al instante y revertir o reconciliar si falla la acción
+- [x] `getTasks(projectId)` — listar tareas del proyecto
+- [x] `updateTaskStatus(taskId, newStatus)` — al soltar en otra columna
+- [x] `createTask(data)` — alta de tareas (lista para Fase 4 / formulario)
+- [x] Validación de entrada en servidor (Zod o equivalente donde encaje)
+- [x] **useOptimistic** para mover tarjetas al instante y revertir o reconciliar si falla la acción
 
 **Prompt mejorado:**
 
