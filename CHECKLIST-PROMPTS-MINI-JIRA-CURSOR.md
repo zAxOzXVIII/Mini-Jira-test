@@ -223,6 +223,16 @@ npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities zod react-hook-fo
 
 ---
 
+## Mejoras UX implementadas (2026-06-01)
+
+- **Toasts (sonner):** éxito/error al mover tarjeta y al crear tarea; integrado en layout con `richColors`.
+- **Limpiar filtros:** botón en toolbar cuando hay filtros activos; también aparece en el mensaje de estado vacío.
+- **Mensajes de columna diferenciados:** "Arrastra una tarea aquí" sin filtros / "Ninguna tarea coincide aquí" con filtros.
+- **Skeleton de carga:** `src/app/loading.tsx` + `KanbanBoardSkeleton` que refleja las 3 columnas reales.
+- **`prefers-reduced-motion`:** hook `useReducedMotion` desactiva la animación del `DragOverlay` cuando el usuario lo pide.
+
+---
+
 ## Resumen
 
 1. Composer + **prompts por fase** reducen alucinaciones y errores de integración.  

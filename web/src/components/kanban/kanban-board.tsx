@@ -18,10 +18,13 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
+import { toast } from "sonner";
 
 import { createTask, updateTaskStatus } from "@/app/actions/tasks";
 import { TaskStatus, type TaskStatus as TaskStatusType } from "@/generated/prisma/enums";
 import type { CreateTaskFormValues } from "@/lib/validations/task";
+
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
 import { KANBAN_COLUMNS, TASK_STATUS_SET } from "./constants";
 import {
@@ -68,6 +71,12 @@ function resolveTargetStatus(
   return overTask?.status ?? null;
 }
 
+const COLUMN_LABELS: Record<TaskStatusType, string> = {
+  [TaskStatus.TODO]: "Por hacer",
+  [TaskStatus.IN_PROGRESS]: "En progreso",
+  [TaskStatus.DONE]: "Hecho",
+};
+
 function filterTasks(
   tasks: KanbanTask[],
   search: string,
@@ -90,12 +99,12 @@ export function KanbanBoard({
 }: KanbanBoardProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const reducedMotion = useReducedMotion();
   const [optimisticTasks, dispatchOptimistic] = useOptimistic(
     initialTasks,
     tasksReducer
   );
   const [activeTask, setActiveTask] = useState<KanbanTask | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>("ALL");
   const [isCreating, setIsCreating] = useState(false);
@@ -123,18 +132,19 @@ export function KanbanBoard({
     return grouped;
   }, [filteredTasks]);
 
-  const hasActiveFilters =
-    search.trim() !== "" || priorityFilter !== "ALL";
+  const hasActiveFilters = search.trim() !== "" || priorityFilter !== "ALL";
   const showFilterEmpty =
-    hasActiveFilters &&
-    filteredTasks.length === 0 &&
-    optimisticTasks.length > 0;
+    hasActiveFilters && filteredTasks.length === 0 && optimisticTasks.length > 0;
+
+  const handleClearFilters = useCallback(() => {
+    setSearch("");
+    setPriorityFilter("ALL");
+  }, []);
 
   const handleDragStart = useCallback(
     (event: DragStartEvent) => {
       const task = optimisticTasks.find((t) => t.id === event.active.id);
       setActiveTask(task ?? null);
-      setError(null);
     },
     [optimisticTasks]
   );
@@ -153,28 +163,24 @@ export function KanbanBoard({
       const current = optimisticTasks.find((t) => t.id === taskId);
       if (!current || current.status === newStatus) return;
 
+      const toastId = toast.loading(`Moviendo a "${COLUMN_LABELS[newStatus]}"…`);
+
       if (dataSource === "mock") {
         startTransition(() => {
-          dispatchOptimistic({
-            type: "update-status",
-            taskId,
-            status: newStatus,
-          });
+          dispatchOptimistic({ type: "update-status", taskId, status: newStatus });
         });
+        toast.success(`Movida a "${COLUMN_LABELS[newStatus]}"`, { id: toastId });
         return;
       }
 
       startTransition(async () => {
-        setError(null);
-        dispatchOptimistic({
-          type: "update-status",
-          taskId,
-          status: newStatus,
-        });
+        dispatchOptimistic({ type: "update-status", taskId, status: newStatus });
 
         const result = await updateTaskStatus(taskId, newStatus);
-        if (!result.success) {
-          setError(result.error);
+        if (result.success) {
+          toast.success(`Movida a "${COLUMN_LABELS[newStatus]}"`, { id: toastId });
+        } else {
+          toast.error(result.error, { id: toastId });
           router.refresh();
         }
       });
@@ -214,27 +220,27 @@ export function KanbanBoard({
             task: { ...optimisticTask, id: `mock-${crypto.randomUUID()}` },
           });
         });
+        toast.success(`Tarea "${payload.title}" creada`);
         return true;
       }
 
       setIsCreating(true);
       return new Promise((resolve) => {
         startTransition(async () => {
-          setError(null);
           dispatchOptimistic({ type: "add", task: optimisticTask });
 
           const result = await createTask(payload);
           setIsCreating(false);
 
-          if (!result.success) {
-            setError(result.error);
+          if (result.success) {
+            toast.success(`Tarea "${result.data.title}" creada`);
+            router.refresh();
+            resolve(true);
+          } else {
+            toast.error(result.error);
             router.refresh();
             resolve(false);
-            return;
           }
-
-          router.refresh();
-          resolve(true);
         });
       });
     },
@@ -248,22 +254,16 @@ export function KanbanBoard({
         onSearchChange={setSearch}
         priorityFilter={priorityFilter}
         onPriorityFilterChange={setPriorityFilter}
+        onClearFilters={handleClearFilters}
+        hasActiveFilters={hasActiveFilters}
         onCreateTask={handleCreateTask}
         isCreating={isCreating}
       />
 
-      {error ? (
-        <div
-          role="alert"
-          className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-        >
-          {error}
-        </div>
-      ) : null}
-
       <div
         className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"
         aria-live="polite"
+        aria-atomic="false"
       >
         <span
           className={
@@ -274,14 +274,16 @@ export function KanbanBoard({
         >
           {dataSource === "database" ? "Base de datos" : "Datos locales (mock)"}
         </span>
-        {isPending ? <span>Guardando cambios…</span> : null}
+        {isPending ? <span>Guardando…</span> : null}
         <span>
           {filteredTasks.length} de {optimisticTasks.length} tareas visibles
         </span>
         <span className="sr-only">Proyecto {projectId}</span>
       </div>
 
-      {showFilterEmpty ? <KanbanFilterEmptyState /> : null}
+      {showFilterEmpty ? (
+        <KanbanFilterEmptyState onClear={handleClearFilters} />
+      ) : null}
 
       <DndContext
         sensors={sensors}
@@ -296,11 +298,16 @@ export function KanbanBoard({
               key={column.id}
               column={column}
               tasks={tasksByColumn[column.id]}
+              hasActiveFilters={hasActiveFilters}
             />
           ))}
         </div>
 
-        <DragOverlay dropAnimation={{ duration: 200, easing: "ease" }}>
+        <DragOverlay
+          dropAnimation={
+            reducedMotion ? null : { duration: 200, easing: "ease" }
+          }
+        >
           {activeTask ? <KanbanTaskCardOverlay task={activeTask} /> : null}
         </DragOverlay>
       </DndContext>

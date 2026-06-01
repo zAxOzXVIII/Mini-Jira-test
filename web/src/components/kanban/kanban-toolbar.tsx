@@ -1,9 +1,10 @@
 "use client";
 
-import { SearchIcon } from "lucide-react";
+import { SearchIcon, XIcon } from "lucide-react";
 
 import { TaskPriority } from "@/generated/prisma/enums";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -31,6 +32,8 @@ type KanbanToolbarProps = {
   onSearchChange: (value: string) => void;
   priorityFilter: PriorityFilter;
   onPriorityFilterChange: (value: PriorityFilter) => void;
+  hasActiveFilters: boolean;
+  onClearFilters: () => void;
   onCreateTask: (values: CreateTaskFormValues) => Promise<boolean>;
   isCreating?: boolean;
 };
@@ -40,12 +43,15 @@ export function KanbanToolbar({
   onSearchChange,
   priorityFilter,
   onPriorityFilterChange,
+  hasActiveFilters,
+  onClearFilters,
   onCreateTask,
   isCreating,
 }: KanbanToolbarProps) {
   return (
     <div className="flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
       <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center">
+        {/* Búsqueda */}
         <div className="relative min-w-[200px] flex-1 sm:max-w-sm">
           <SearchIcon
             className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
@@ -61,13 +67,15 @@ export function KanbanToolbar({
           />
         </div>
 
+        {/* Filtro prioridad */}
         <Select
           value={priorityFilter}
-          onValueChange={(value) =>
-            onPriorityFilterChange(value as PriorityFilter)
-          }
+          onValueChange={(v) => onPriorityFilterChange(v as PriorityFilter)}
         >
-          <SelectTrigger className="w-full sm:w-[200px]" aria-label="Filtrar por prioridad">
+          <SelectTrigger
+            className="w-full sm:w-[200px]"
+            aria-label="Filtrar por prioridad"
+          >
             <SelectValue placeholder="Prioridad" />
           </SelectTrigger>
           <SelectContent>
@@ -78,6 +86,20 @@ export function KanbanToolbar({
             ))}
           </SelectContent>
         </Select>
+
+        {/* Limpiar filtros */}
+        {hasActiveFilters ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClearFilters}
+            className="shrink-0 text-muted-foreground hover:text-foreground"
+            aria-label="Limpiar filtros activos"
+          >
+            <XIcon className="mr-1 size-3.5" aria-hidden />
+            Limpiar
+          </Button>
+        ) : null}
       </div>
 
       <NewTaskDialog onSubmit={onCreateTask} isSubmitting={isCreating} />
@@ -85,15 +107,28 @@ export function KanbanToolbar({
   );
 }
 
-export function KanbanFilterEmptyState({ className }: { className?: string }) {
+type KanbanFilterEmptyStateProps = {
+  className?: string;
+  onClear: () => void;
+};
+
+export function KanbanFilterEmptyState({
+  className,
+  onClear,
+}: KanbanFilterEmptyStateProps) {
   return (
-    <p
+    <div
       className={cn(
-        "rounded-lg border border-dashed bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground",
+        "flex flex-col items-center gap-3 rounded-lg border border-dashed bg-muted/30 px-4 py-8 text-center",
         className
       )}
     >
-      Ninguna tarea coincide con la búsqueda o el filtro de prioridad.
-    </p>
+      <p className="text-sm text-muted-foreground">
+        Ninguna tarea coincide con la búsqueda o el filtro de prioridad.
+      </p>
+      <Button variant="outline" size="sm" onClick={onClear}>
+        Limpiar filtros
+      </Button>
+    </div>
   );
 }
