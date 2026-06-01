@@ -136,14 +136,16 @@ npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities zod react-hook-fo
 
 **Meta:** Tablero visual con DnD entre columnas, sin obligar a que toda la persistencia esté perfecta en el primer intento.
 
+**Estado:** completada en `web/src/components/kanban` — tablero montado en `src/app/page.tsx` con datos mock; arrastre entre columnas actualiza estado local (persistencia en Fase 3).
+
 **Checklist de verificación**
 
-- [ ] Componente(s) bajo `src/components/kanban`
-- [ ] **@dnd-kit/core** (y lo que haga falta de dnd-kit) para arrastrar entre columnas
-- [ ] Tres columnas: TODO, IN_PROGRESS, DONE
-- [ ] Tarjetas con **Card** de shadcn
-- [ ] Badges de prioridad con color consistente
-- [ ] Layout **responsive** y aspecto moderno
+- [x] Componente(s) bajo `src/components/kanban`
+- [x] **@dnd-kit/core** (y lo que haga falta de dnd-kit) para arrastrar entre columnas
+- [x] Tres columnas: TODO, IN_PROGRESS, DONE
+- [x] Tarjetas con **Card** de shadcn
+- [x] Badges de prioridad con color consistente
+- [x] Layout **responsive** y aspecto moderno
 
 **Prompt mejorado:**
 
